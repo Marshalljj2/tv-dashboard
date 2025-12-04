@@ -272,5 +272,684 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .tide-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+
+    .tide-table th,
+    .tide-table td {
+      padding: 0.36rem 0.4rem;
+      text-align: left;
+    }
+
+    .tide-table th {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    .tide-table tr:nth-child(even) td {
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .tide-type-high {
+      color: var(--success);
+    }
+
+    .tide-type-low {
+      color: var(--danger);
+    }
+
+    /* Surf */
+
+    .surf-section-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+    }
+
+    .surf-graph {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.7rem;
+      overflow-x: auto;
+      padding-bottom: 0.4rem;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+    }
+
+    .surf-graph::-webkit-scrollbar {
+      height: 6px;
+    }
+    .surf-graph::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .surf-graph::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 999px;
+    }
+
+    .surf-bar-wrapper {
+      min-width: 70px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .surf-bar {
+      width: 26px;
+      margin: 0 auto 0.25rem;
+      border-radius: 999px 999px 6px 6px;
+      background: linear-gradient(to top, rgba(56, 189, 248, 0.2), rgba(56, 189, 248, 0.9));
+      position: relative;
+    }
+
+    .surf-height-label {
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      color: #0b1120;
+      font-weight: 600;
+    }
+
+    .surf-hour {
+      margin-top: 0.1rem;
+    }
+
+    .surf-meta {
+      font-size: 0.7rem;
+      margin-top: 0.05rem;
+    }
+
+    .surf-quality {
+      font-size: 0.72rem;
+      margin-top: 0.1rem;
+    }
+
+    .surf-quality-clean {
+      color: var(--success);
+    }
+
+    .surf-quality-fair {
+      color: var(--warning);
+    }
+
+    .surf-quality-choppy {
+      color: var(--danger);
+    }
+
+    .error {
+      color: var(--danger);
+      font-size: 0.86rem;
+      margin-top: 0.35rem;
+    }
+
+    @media (max-width: 1000px) {
+      .dashboard {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto auto auto auto;
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <header class="header">
+      <div>
+        <div class="title">Sky &amp; Sea</div>
+        <div class="subtitle">Joyce · Crescent Bay · WA</div>
+      </div>
+      <div class="clock" id="clock"></div>
+    </header>
+
+    <!-- Moon -->
+    <section class="card">
+      <div class="card-header-row">
+        <h2>Moon</h2>
+        <span class="pill" id="moonIlluminationPill">--% · --</span>
+      </div>
+      <div class="moon-layout">
+        <div class="moon-graphic">
+          <div class="moon-shadow" id="moonShadow"></div>
+        </div>
+        <div class="moon-info">
+          <div class="moon-phase-name" id="moonPhaseName">Loading…</div>
+          <div class="moon-age" id="moonAge"></div>
+          <div class="moon-waxing" id="moonWaxing"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Weather -->
+    <section class="card">
+      <div class="card-header-row">
+        <h2>Weather</h2>
+        <span class="pill" id="weatherPill">Next 12 hours</span>
+      </div>
+      <div class="weather-grid">
+        <div>
+          <div class="weather-section-title">Next 12 hours</div>
+          <div class="hourly-strip" id="hourlyStrip">
+            <div class="hour-chip">
+              <div class="hour-time">--</div>
+              <div class="hour-temp">--°</div>
+              <div class="hour-desc">Loading…</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="weather-section-title">Tomorrow</div>
+          <div class="tomorrow-row">
+            <div class="tomorrow-main">
+              <div class="tomorrow-temp">
+                <span id="tempHigh">--</span>° / <span id="tempLow">--</span>°
+              </div>
+              <div class="tomorrow-meta" id="weatherSummary">Loading forecast…</div>
+            </div>
+            <div class="weather-location-meta">
+              <div id="weatherLocation">Crescent Bay</div>
+              <div id="weatherMetaSmall">Source: Open-Meteo · °F</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="weather-day-blurb" id="weatherBlurb"></div>
+      <div class="error" id="weatherError"></div>
+    </section>
+
+    <!-- Surf -->
+    <section class="card" style="grid-column: 1 / -1;">
+      <div class="card-header-row">
+        <h2>Surf · Crescent Bay</h2>
+        <span class="badge" id="surfUpdatedLabel">Updating…</span>
+      </div>
+      <div class="surf-section-title">Next 12 hours</div>
+      <div class="surf-graph" id="surfGraph">
+        <div class="surf-bar-wrapper">
+          <div class="surf-bar" style="height: 40px;">
+            <div class="surf-height-label">--</div>
+          </div>
+          <div class="surf-hour">--</div>
+          <div class="surf-meta">--</div>
+          <div class="surf-quality">Loading…</div>
+        </div>
+      </div>
+      <div class="error" id="surfError"></div>
+    </section>
+
+    <!-- Tides -->
+    <section class="card" style="grid-column: 1 / -1;">
+      <div class="tide-header">
+        <h2>Tides · Crescent Bay</h2>
+        <span class="badge" id="tideDateLabel">Today</span>
+      </div>
+      <table class="tide-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Type</th>
+            <th>Height</th>
+          </tr>
+        </thead>
+        <tbody id="tideBody">
+          <tr><td colspan="3">Loading tide data…</td></tr>
+        </tbody>
+      </table>
+      <div class="error" id="tideError"></div>
+    </section>
+  </div>
+
+  <script>
+    // ================================
+    //  CONFIG — Joyce / Crescent Bay
+    // ================================
+    const CONFIG = {
+      latitude: 48.1615,
+      longitude: -123.7188,
+      locationName: "Crescent Bay, Joyce WA",
+      noaaStationId: "9443826",
+      tempUnit: "F",
+      heightUnit: "ft"
+    };
+
+    // ================================
+    //  CLOCK
+    // ================================
+    function updateClock() {
+      const now = new Date();
+      const options = {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      };
+      document.getElementById("clock").textContent =
+        now.toLocaleString(undefined, options);
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ================================
+    //  MOON PHASE
+    // ================================
+    function calculateMoonPhase(date = new Date()) {
+      const lp = 2551443;
+      const knownNewMoon = new Date(Date.UTC(1970, 0, 7, 20, 35, 0));
+      const phaseTime = (date.getTime() - knownNewMoon.getTime()) / 1000;
+      const phase = (phaseTime % lp) / lp;
+      const age = phase * 29.53;
+
+      let phaseName = "";
+      if (phase < 0.03 || phase > 0.97) phaseName = "New Moon";
+      else if (phase < 0.22) phaseName = "Waxing Crescent";
+      else if (phase < 0.28) phaseName = "First Quarter";
+      else if (phase < 0.47) phaseName = "Waxing Gibbous";
+      else if (phase < 0.53) phaseName = "Full Moon";
+      else if (phase < 0.72) phaseName = "Waning Gibbous";
+      else if (phase < 0.78) phaseName = "Last Quarter";
+      else phaseName = "Waning Crescent";
+
+      const illumination =
+        Math.round(50 * (1 - Math.cos(2 * Math.PI * phase))) * 2 / 2;
+
+      let waxingLabel = "";
+      if (phase < 0.5 && phase > 0.03) waxingLabel = "Waxing";
+      else if (phase > 0.5 && phase < 0.97) waxingLabel = "Waning";
+      else if (phase <= 0.03 || phase >= 0.97) waxingLabel = "New";
+      else waxingLabel = "Full";
+
+      return { phase, age, phaseName, illumination, waxingLabel };
+    }
+
+    function renderMoon() {
+      const { phase, age, phaseName, illumination, waxingLabel } = calculateMoonPhase();
+      document.getElementById("moonPhaseName").textContent = phaseName;
+      document.getElementById("moonAge").textContent = `Age: ${age.toFixed(1)} days`;
+      document.getElementById("moonWaxing").textContent =
+        `${waxingLabel} · ${illumination.toFixed(0)}% illuminated`;
+      document.getElementById("moonIlluminationPill").textContent =
+        `${illumination.toFixed(0)}% · ${waxingLabel}`;
+
+      const shadow = document.getElementById("moonShadow");
+
+      // Full moon: hide shadow so disk looks fully lit
+      if (illumination > 97) {
+        shadow.style.opacity = 0;
+        return;
+      }
+
+      shadow.style.opacity = 1;
+
+      // New moon: center shadow (fully dark disk)
+      if (illumination < 3) {
+        shadow.style.transform = "translateX(0)";
+        return;
+      }
+
+      // Other phases: shift shadow left/right for waxing/waning look
+      const offset = (phase <= 0.5 ? (0.5 - phase) : (phase - 0.5)) * 200;
+      const direction = phase < 0.5 ? 1 : -1;
+      shadow.style.transform = `translateX(${direction * offset}%)`;
+    }
+
+    renderMoon();
+    setInterval(renderMoon, 60 * 60 * 1000);
+
+    // ================================
+    //  WEATHER — Open-Meteo
+    // ================================
+    function describeWeatherCode(code) {
+      if (code == null) return "";
+      if ([0].includes(code)) return "Clear";
+      if ([1, 2].includes(code)) return "Partly cloud";
+      if ([3].includes(code)) return "Cloudy";
+      if ([45, 48].includes(code)) return "Fog";
+      if ([51, 53, 55, 61, 63, 65].includes(code)) return "Rain";
+      if ([80, 81, 82].includes(code)) return "Showers";
+      if ([71, 73, 75, 77, 85, 86].includes(code)) return "Snow";
+      if ([95, 96, 99].includes(code)) return "Storm";
+      return "—";
+    }
+
+    async function fetchWeather() {
+      const lat = CONFIG.latitude;
+      const lon = CONFIG.longitude;
+      const isF = CONFIG.tempUnit === "F";
+
+      const url = `https://api.open-meteo.com/v1/forecast` +
+        `?latitude=${lat}&longitude=${lon}` +
+        `&hourly=temperature_2m,precipitation_probability,weathercode` +
+        `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_mean` +
+        `&timezone=auto` +
+        (isF ? "&temperature_unit=fahrenheit" : "");
+
+      const errorEl = document.getElementById("weatherError");
+      const blurbEl = document.getElementById("weatherBlurb");
+      errorEl.textContent = "";
+      blurbEl.textContent = "";
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        const hourlyTimes = data.hourly.time.map(t => new Date(t));
+        const temps = data.hourly.temperature_2m;
+        const pops = data.hourly.precipitation_probability || [];
+        const codes = data.hourly.weathercode || [];
+
+        const now = new Date();
+        let startIndex = 0;
+        for (let i = 0; i < hourlyTimes.length; i++) {
+          if (hourlyTimes[i] >= now) {
+            startIndex = i;
+            break;
+          }
+        }
+
+        const hoursToShow = 12;
+        let html = "";
+        const windowPops = [];
+        const windowCodes = [];
+        const windowTimes = [];
+
+        for (let i = 0; i < hoursToShow && (startIndex + i) < hourlyTimes.length; i++) {
+          const idx = startIndex + i;
+          const t = hourlyTimes[idx];
+          const label = t.toLocaleTimeString(undefined, { hour: "numeric" });
+          const temp = Math.round(temps[idx]);
+          const pop = pops[idx] != null ? pops[idx] : null;
+          const desc = describeWeatherCode(codes[idx]);
+
+          windowPops.push(pop != null ? pop : 0);
+          windowCodes.push(codes[idx]);
+          windowTimes.push(t);
+
+          html += `
+            <div class="hour-chip">
+              <div class="hour-time">${label}</div>
+              <div class="hour-temp">${temp}°</div>
+              <div class="hour-desc">${desc}</div>
+              ${pop !== null ? `<div class="hour-pop">${pop}%</div>` : ""}
+            </div>
+          `;
+        }
+        document.getElementById("hourlyStrip").innerHTML = html || `
+          <div class="hour-chip">
+            <div class="hour-time">--</div>
+            <div class="hour-temp">--°</div>
+            <div class="hour-desc">No data</div>
+          </div>
+        `;
+
+        // Tomorrow snapshot
+        const tomorrowIndex = 1;
+        const tMax = data.daily.temperature_2m_max[tomorrowIndex];
+        const tMin = data.daily.temperature_2m_min[tomorrowIndex];
+        const precipProb = data.daily.precipitation_probability_mean[tomorrowIndex];
+
+        document.getElementById("tempHigh").textContent = Math.round(tMax);
+        document.getElementById("tempLow").textContent = Math.round(tMin);
+
+        let summary = "";
+        if (precipProb >= 70) summary = "Likely rain";
+        else if (precipProb >= 40) summary = "Chance of showers";
+        else summary = "Mostly dry";
+        summary += ` · ${precipProb}% precip.`;
+
+        document.getElementById("weatherSummary").textContent = summary;
+        document.getElementById("weatherLocation").textContent = CONFIG.locationName;
+        document.getElementById("weatherMetaSmall").textContent =
+          `Source: Open-Meteo · ${CONFIG.tempUnit}`;
+
+        // Day blurb based on next 12 hours
+        if (windowPops.length) {
+          const maxPrecip = Math.max(...windowPops);
+          const sunnyCodes = [0, 1, 2];
+          const sunnyCount = windowCodes.filter(c => sunnyCodes.includes(c)).length;
+          const total = windowPops.length;
+          const sunnyFrac = total ? sunnyCount / total : 0;
+          const dryFrac = total ? windowPops.filter(p => p < 30).length / total : 0;
+          const afternoonHeavy = windowTimes.some((t, i) =>
+            windowPops[i] >= 70 && t.getHours() >= 12 && t.getHours() <= 18
+          );
+
+          let blurb;
+          if (sunnyFrac > 0.6 && dryFrac > 0.7) {
+            blurb = "Looks like a nice day – do something rad out there.";
+          } else if (afternoonHeavy && maxPrecip >= 70) {
+            blurb = "Rainy conditions today – heavier rain moving in this afternoon.";
+          } else if (maxPrecip >= 70) {
+            blurb = "Rainy conditions today – expect some heavier bursts.";
+          } else if (maxPrecip >= 40) {
+            blurb = "On-and-off showers today – keep a rain shell handy.";
+          } else if (dryFrac > 0.7 && sunnyFrac < 0.6) {
+            blurb = "Mostly dry with clouds around today.";
+          } else {
+            blurb = "Mixed conditions today – check the hourly before heading out.";
+          }
+
+          blurbEl.textContent = blurb;
+        }
+      } catch (err) {
+        console.error(err);
+        errorEl.textContent = "Could not load forecast (check internet connection).";
+      }
+    }
+
+    fetchWeather();
+    setInterval(fetchWeather, 30 * 60 * 1000);
+
+    // ================================
+    //  SURF — Open-Meteo Marine
+    // ================================
+    function degToCompass(deg) {
+      const dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
+                    "S","SSW","SW","WSW","W","WNW","NW","NNW"];
+      const idx = Math.round(deg / 22.5) % 16;
+      return dirs[idx];
+    }
+
+    function getSurfQuality(heightFt, periodSec, windMps) {
+      const windMph = windMps * 2.23694;
+      if (heightFt < 1) return "Flat";
+      if (windMph <= 8 && periodSec >= 11) return "Clean";
+      if (windMph <= 15 && periodSec >= 8) return "Fair";
+      return "Choppy";
+    }
+
+    async function fetchSurf() {
+      const lat = CONFIG.latitude;
+      const lon = CONFIG.longitude;
+      const surfError = document.getElementById("surfError");
+      const graphEl = document.getElementById("surfGraph");
+      const updatedEl = document.getElementById("surfUpdatedLabel");
+      surfError.textContent = "";
+
+      const url = "https://marine-api.open-meteo.com/v1/marine" +
+        `?latitude=${lat}&longitude=${lon}` +
+        "&hourly=wave_height,wave_period,wave_direction,wind_speed_10m,wind_direction_10m" +
+        "&timezone=auto";
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        const hourly = data.hourly || {};
+        const times = (hourly.time || []).map(t => new Date(t));
+        const waveHeightM = hourly.wave_height || [];
+        const wavePeriod = hourly.wave_period || [];
+        const windSpeedMps = hourly.wind_speed_10m || [];
+        const windDirDeg = hourly.wind_direction_10m || [];
+
+        if (!times.length) {
+          graphEl.innerHTML = "<div class='surf-bar-wrapper'><div>No surf data.</div></div>";
+          return;
+        }
+
+        const now = new Date();
+        let startIndex = 0;
+        for (let i = 0; i < times.length; i++) {
+          if (times[i] >= now) { startIndex = i; break; }
+        }
+
+        const hoursToShow = 12;
+        const points = [];
+        for (let i = 0; i < hoursToShow && (startIndex + i) < times.length; i++) {
+          const idx = startIndex + i;
+          const t = times[idx];
+          const hM = waveHeightM[idx] ?? 0;
+          const hFt = hM * 3.28084;
+          const period = wavePeriod[idx] ?? 0;
+          const ws = windSpeedMps[idx] ?? 0;
+          const wd = windDirDeg[idx] ?? 0;
+          const quality = getSurfQuality(hFt, period, ws);
+
+          points.push({
+            time: t,
+            heightFt: hFt,
+            period,
+            windDir: wd,
+            windSpeedMps: ws,
+            quality
+          });
+        }
+
+        if (!points.length) {
+          graphEl.innerHTML = "<div class='surf-bar-wrapper'><div>No upcoming data.</div></div>";
+          return;
+        }
+
+        const maxHeight = Math.max(...points.map(p => p.heightFt));
+        const minBar = 24;
+        const maxBar = 95;
+
+        let html = "";
+        for (const p of points) {
+          const hourLabel = p.time.toLocaleTimeString(undefined, { hour: "numeric" });
+          const dirStr = `${degToCompass(p.windDir)} ${Math.round(p.windDir)}°`;
+          const q = p.quality;
+          const qClass =
+            q === "Clean" ? "surf-quality-clean" :
+            q === "Fair" ? "surf-quality-fair" :
+            q === "Choppy" ? "surf-quality-choppy" : "";
+
+          const barHeight = maxHeight > 0
+            ? (minBar + (p.heightFt / maxHeight) * (maxBar - minBar))
+            : minBar;
+
+          html += `
+            <div class="surf-bar-wrapper">
+              <div class="surf-bar" style="height:${barHeight}px;">
+                <div class="surf-height-label">${p.heightFt.toFixed(1)}'</div>
+              </div>
+              <div class="surf-hour">${hourLabel}</div>
+              <div class="surf-meta">${p.period.toFixed(0)}s · ${dirStr}</div>
+              <div class="surf-quality ${qClass}">${q}</div>
+            </div>
+          `;
+        }
+
+        graphEl.innerHTML = html;
+        const nowStr = new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+        updatedEl.textContent = `Updated ${nowStr}`;
+      } catch (err) {
+        console.error(err);
+        surfError.textContent = "Could not load surf forecast.";
+      }
+    }
+
+    fetchSurf();
+    setInterval(fetchSurf, 60 * 60 * 1000);
+
+    // ================================
+    //  TIDES — NOAA Crescent Bay
+    // ================================
+    async function fetchTides() {
+      const station = CONFIG.noaaStationId;
+      const heightUnit = CONFIG.heightUnit === "m" ? "metric" : "english";
+
+      const tideBody = document.getElementById("tideBody");
+      const errorEl = document.getElementById("tideError");
+      errorEl.textContent = "";
+
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const dd = String(now.getDate()).padStart(2, "0");
+      const dateStr = `${yyyy}${mm}${dd}`;
+
+      document.getElementById("tideDateLabel").textContent =
+        now.toLocaleDateString(undefined, {
+          weekday: "long",
+          month: "short",
+          day: "numeric"
+        });
+
+      const url =
+        `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter` +
+        `?product=predictions&application=JoyceDashboard` +
+        `&begin_date=${dateStr}&end_date=${dateStr}` +
+        `&datum=MLLW&station=${station}&time_zone=lst_ldt` +
+        `&units=${heightUnit}&interval=hilo&format=json`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        const preds = data.predictions || [];
+        if (!preds.length) {
+          tideBody.innerHTML = `<tr><td colspan="3">No tide data for today.</td></tr>`;
+          return;
+        }
+
+        tideBody.innerHTML = preds
+          .map(p => {
+            const [date, time] = p.t.split(" ");
+            const when = new Date(`${date}T${time}`);
+            const timeStr = when.toLocaleTimeString(undefined, {
+              hour: "numeric",
+              minute: "2-digit"
+            });
+            const typeStr = p.type === "H" ? "High" : "Low";
+            const cls = p.type === "H" ? "tide-type-high" : "tide-type-low";
+            const height = `${p.v} ${CONFIG.heightUnit}`;
+            return `
+              <tr>
+                <td>${timeStr}</td>
+                <td class="${cls}">${typeStr}</td>
+                <td>${height}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      } catch (err) {
+        console.error(err);
+        errorEl.textContent =
+          "Could not load tide data (check station ID or internet).";
+        tideBody.innerHTML = `<tr><td colspan="3">Error loading tides.</td></tr>`;
+      }
+    }
+
+    fetchTides();
+    setInterval(fetchTides, 2 * 60 * 60 * 1000);
+  </script>
+</body>
+</html>
 
