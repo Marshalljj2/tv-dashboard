@@ -181,13 +181,24 @@
       margin-bottom: 0.6rem;
     }
 
-    /* UPDATED: wrap hourly chips so they stay inside the box */
     .hourly-strip {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+      display: flex;
       gap: 0.6rem;
-      padding-bottom: 0;
-      overflow: visible;
+      overflow-x: auto;
+      padding-bottom: 0.2rem;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+    }
+
+    .hourly-strip::-webkit-scrollbar {
+      height: 6px;
+    }
+    .hourly-strip::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .hourly-strip::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 999px;
     }
 
     .hour-chip {
@@ -780,7 +791,7 @@
         const data = await res.json();
 
         const hourly = data.hourly || {};
-        the times = (hourly.time || []).map(t => new Date(t));
+        const times = (hourly.time || []).map(t => new Date(t));
         const waveHeightM = hourly.wave_height || [];
         const wavePeriod = hourly.wave_period || [];
         const windSpeedMps = hourly.wind_speed_10m || [];
