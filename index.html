@@ -43,7 +43,7 @@
       padding: 2rem 3rem;
       display: grid;
       grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr);
-      grid-template-rows: auto auto minmax(0, 1fr);
+      grid-template-rows: auto auto auto minmax(0, 1fr);
       gap: 1.5rem;
     }
 
@@ -302,6 +302,88 @@
       color: var(--danger);
     }
 
+    /* Surf */
+
+    .surf-section-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+    }
+
+    .surf-graph {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.7rem;
+      overflow-x: auto;
+      padding-bottom: 0.4rem;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+    }
+
+    .surf-graph::-webkit-scrollbar {
+      height: 6px;
+    }
+    .surf-graph::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .surf-graph::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 999px;
+    }
+
+    .surf-bar-wrapper {
+      min-width: 70px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .surf-bar {
+      width: 26px;
+      margin: 0 auto 0.25rem;
+      border-radius: 999px 999px 6px 6px;
+      background: linear-gradient(to top, rgba(56, 189, 248, 0.2), rgba(56, 189, 248, 0.9));
+      position: relative;
+    }
+
+    .surf-height-label {
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      color: #0b1120;
+      font-weight: 600;
+    }
+
+    .surf-hour {
+      margin-top: 0.1rem;
+    }
+
+    .surf-meta {
+      font-size: 0.7rem;
+      margin-top: 0.05rem;
+    }
+
+    .surf-quality {
+      font-size: 0.72rem;
+      margin-top: 0.1rem;
+    }
+
+    .surf-quality-clean {
+      color: var(--success);
+    }
+
+    .surf-quality-fair {
+      color: var(--warning);
+    }
+
+    .surf-quality-choppy {
+      color: var(--danger);
+    }
+
     .error {
       color: var(--danger);
       font-size: 0.86rem;
@@ -311,7 +393,7 @@
     @media (max-width: 1000px) {
       .dashboard {
         grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: auto auto auto auto;
+        grid-template-rows: auto auto auto auto auto;
         padding: 1.5rem;
       }
     }
@@ -381,6 +463,26 @@
       <div class="error" id="weatherError"></div>
     </section>
 
+    <!-- Surf -->
+    <section class="card" style="grid-column: 1 / -1;">
+      <div class="card-header-row">
+        <h2>Surf · Crescent Bay</h2>
+        <span class="badge" id="surfUpdatedLabel">Updating…</span>
+      </div>
+      <div class="surf-section-title">Next 8 hours</div>
+      <div class="surf-graph" id="surfGraph">
+        <div class="surf-bar-wrapper">
+          <div class="surf-bar" style="height: 40px;">
+            <div class="surf-height-label">--</div>
+          </div>
+          <div class="surf-hour">--</div>
+          <div class="surf-meta">--</div>
+          <div class="surf-quality">Loading…</div>
+        </div>
+      </div>
+      <div class="error" id="surfError"></div>
+    </section>
+
     <!-- Tides -->
     <section class="card" style="grid-column: 1 / -1;">
       <div class="tide-header">
@@ -405,13 +507,13 @@
 
   <script>
     // ================================
-    //  CONFIG — tailored for Joyce / Crescent Bay
+    //  CONFIG — Joyce / Crescent Bay
     // ================================
     const CONFIG = {
-      latitude: 48.1615,       // Crescent Bay approx lat
-      longitude: -123.7188,    // Crescent Bay approx lon
+      latitude: 48.1615,
+      longitude: -123.7188,
       locationName: "Crescent Bay, Joyce WA",
-      noaaStationId: "9443826", // NOAA Crescent Bay, WA
+      noaaStationId: "9443826",
       tempUnit: "F",
       heightUnit: "ft"
     };
@@ -438,10 +540,10 @@
     //  MOON PHASE
     // ================================
     function calculateMoonPhase(date = new Date()) {
-      const lp = 2551443; // lunar period in seconds
-      const knownNewMoon = new Date(Date.UTC(1970, 0, 7, 20, 35, 0)); // reference new moon
+      const lp = 2551443;
+      const knownNewMoon = new Date(Date.UTC(1970, 0, 7, 20, 35, 0));
       const phaseTime = (date.getTime() - knownNewMoon.getTime()) / 1000;
-      const phase = (phaseTime % lp) / lp; // 0–1
+      const phase = (phaseTime % lp) / lp;
       const age = phase * 29.53;
 
       let phaseName = "";
@@ -470,11 +572,11 @@
       const { phase, age, phaseName, illumination, waxingLabel } = calculateMoonPhase();
       document.getElementById("moonPhaseName").textContent = phaseName;
       document.getElementById("moonAge").textContent = `Age: ${age.toFixed(1)} days`;
-      document.getElementById("moonWaxing").textContent = `${waxingLabel} · ${illumination.toFixed(0)}% illuminated`;
+      document.getElementById("moonWaxing").textContent =
+        `${waxingLabel} · ${illumination.toFixed(0)}% illuminated`;
       document.getElementById("moonIlluminationPill").textContent =
         `${illumination.toFixed(0)}% · ${waxingLabel}`;
 
-      // Simple visual: shift a dark disk left/right to mimic waxing/waning
       const shadow = document.getElementById("moonShadow");
       const offset = (phase <= 0.5 ? (0.5 - phase) : (phase - 0.5)) * 200;
       const direction = phase < 0.5 ? 1 : -1;
@@ -485,11 +587,10 @@
     setInterval(renderMoon, 60 * 60 * 1000);
 
     // ================================
-    //  WEATHER — Open-Meteo hourly + daily
+    //  WEATHER — Open-Meteo
     // ================================
     function describeWeatherCode(code) {
       if (code == null) return "";
-      // Very small mapping for dashboard purposes
       if ([0].includes(code)) return "Clear";
       if ([1, 2].includes(code)) return "Partly cloud";
       if ([3].includes(code)) return "Cloudy";
@@ -562,8 +663,7 @@
           </div>
         `;
 
-        // Tomorrow snapshot
-        const tomorrowIndex = 1; // 0 = today
+        const tomorrowIndex = 1;
         const tMax = data.daily.temperature_2m_max[tomorrowIndex];
         const tMin = data.daily.temperature_2m_min[tomorrowIndex];
         const precipProb = data.daily.precipitation_probability_mean[tomorrowIndex];
@@ -589,6 +689,129 @@
 
     fetchWeather();
     setInterval(fetchWeather, 30 * 60 * 1000);
+
+    // ================================
+    //  SURF — Open-Meteo Marine
+    // ================================
+    function degToCompass(deg) {
+      const dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
+                    "S","SSW","SW","WSW","W","WNW","NW","NNW"];
+      const idx = Math.round(deg / 22.5) % 16;
+      return dirs[idx];
+    }
+
+    function getSurfQuality(heightFt, periodSec, windMps) {
+      const windMph = windMps * 2.23694;
+      if (heightFt < 1) return "Flat";
+      if (windMph <= 8 && periodSec >= 11) return "Clean";
+      if (windMph <= 15 && periodSec >= 8) return "Fair";
+      return "Choppy";
+    }
+
+    async function fetchSurf() {
+      const lat = CONFIG.latitude;
+      const lon = CONFIG.longitude;
+      const surfError = document.getElementById("surfError");
+      const graphEl = document.getElementById("surfGraph");
+      const updatedEl = document.getElementById("surfUpdatedLabel");
+      surfError.textContent = "";
+
+      const url = "https://marine-api.open-meteo.com/v1/marine" +
+        `?latitude=${lat}&longitude=${lon}` +
+        "&hourly=wave_height,wave_period,wave_direction,wind_speed_10m,wind_direction_10m" +
+        "&timezone=auto";
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        const hourly = data.hourly || {};
+        const times = (hourly.time || []).map(t => new Date(t));
+        const waveHeightM = hourly.wave_height || [];
+        const wavePeriod = hourly.wave_period || [];
+        const windSpeedMps = hourly.wind_speed_10m || [];
+        const windDirDeg = hourly.wind_direction_10m || [];
+
+        if (!times.length) {
+          graphEl.innerHTML = "<div class='surf-bar-wrapper'><div>No surf data.</div></div>";
+          return;
+        }
+
+        const now = new Date();
+        let startIndex = 0;
+        for (let i = 0; i < times.length; i++) {
+          if (times[i] >= now) { startIndex = i; break; }
+        }
+
+        const hoursToShow = 8;
+        const points = [];
+        for (let i = 0; i < hoursToShow && (startIndex + i) < times.length; i++) {
+          const idx = startIndex + i;
+          const t = times[idx];
+          const hM = waveHeightM[idx] ?? 0;
+          const hFt = hM * 3.28084;
+          const period = wavePeriod[idx] ?? 0;
+          const ws = windSpeedMps[idx] ?? 0;
+          const wd = windDirDeg[idx] ?? 0;
+          const quality = getSurfQuality(hFt, period, ws);
+
+          points.push({
+            time: t,
+            heightFt: hFt,
+            period,
+            windDir: wd,
+            windSpeedMps: ws,
+            quality
+          });
+        }
+
+        if (!points.length) {
+          graphEl.innerHTML = "<div class='surf-bar-wrapper'><div>No upcoming data.</div></div>";
+          return;
+        }
+
+        const maxHeight = Math.max(...points.map(p => p.heightFt));
+        const minBar = 24;
+        const maxBar = 95;
+
+        let html = "";
+        for (const p of points) {
+          const hourLabel = p.time.toLocaleTimeString(undefined, { hour: "numeric" });
+          const dirStr = `${degToCompass(p.windDir)} ${Math.round(p.windDir)}°`;
+          const q = p.quality;
+          const qClass =
+            q === "Clean" ? "surf-quality-clean" :
+            q === "Fair" ? "surf-quality-fair" :
+            q === "Choppy" ? "surf-quality-choppy" : "";
+
+          const barHeight = maxHeight > 0
+            ? (minBar + (p.heightFt / maxHeight) * (maxBar - minBar))
+            : minBar;
+
+          html += `
+            <div class="surf-bar-wrapper">
+              <div class="surf-bar" style="height:${barHeight}px;">
+                <div class="surf-height-label">${p.heightFt.toFixed(1)}'</div>
+              </div>
+              <div class="surf-hour">${hourLabel}</div>
+              <div class="surf-meta">${p.period.toFixed(0)}s · ${dirStr}</div>
+              <div class="surf-quality ${qClass}">${q}</div>
+            </div>
+          `;
+        }
+
+        graphEl.innerHTML = html;
+        const nowStr = new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+        updatedEl.textContent = `Updated ${nowStr}`;
+      } catch (err) {
+        console.error(err);
+        surfError.textContent = "Could not load surf forecast.";
+      }
+    }
+
+    fetchSurf();
+    setInterval(fetchSurf, 60 * 60 * 1000);
 
     // ================================
     //  TIDES — NOAA Crescent Bay
@@ -665,3 +888,4 @@
   </script>
 </body>
 </html>
+
